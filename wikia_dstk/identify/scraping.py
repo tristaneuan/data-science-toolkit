@@ -1,7 +1,7 @@
-import re
 import requests
 from bs4 import BeautifulSoup
 from urllib2 import urlopen
+
 
 def guess_from_title_tag(wid):
     """Given a wiki ID, return a list containing a single string representing
@@ -11,7 +11,8 @@ def guess_from_title_tag(wid):
                                     'q': 'wid:%s AND is_main_page:true' % wid,
                                     'fl': 'url'})
 
-    url = response.json().get('response', {}).get('docs', [{}])[0].get('url', None)
+    url = response.json().get('response', {}).get('docs', [{}])[0].get('url',
+                                                                       None)
     html = urlopen(url).read()
     soup = BeautifulSoup(html)
     title = soup.title.string

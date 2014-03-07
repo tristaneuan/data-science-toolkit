@@ -1,6 +1,7 @@
 from __future__ import division
+from collections import defaultdict
 from preprocessing import preprocess
-from preprocessing import build_dict_with_term_counts
+
 
 class BinaryField(object):
     def __init__(self, terms):
@@ -9,22 +10,25 @@ class BinaryField(object):
         binary scoring.
         Applicable fields: hostname, sitename, headline, title_tag"""
         self.d = {}
-        if terms_from_field:
+        if terms:
             self.d = dict((preprocess(term), 1.0) for term in terms)
-
 
     def score(self, candidate):
         """Return a score based on the binary presence or absence of a given
         candidate in a simple lookup dictionary for a certain field. """
         return self.d.get(candidate, 0.0)
 
+
 class TermFreqField(object):
-    def __init__(self, terms_from_field):
+    def __init__(self, terms):
         """Class whose main purpose is to build a term count dictionary from a
         list of terms in a given field, and to save the maximum term count in
         order to facilitate term frequency calculations.
         Applicable fields: domains, description, top titles, top categories"""
-        self.d = build_dict_with_term_counts(terms_from_field)
+        self.d = defaultdict(int)
+        for term in terms:
+            normalized = preprocess(term)
+            self.d[normalized] += 1
         self.max_score = None
         if len(self.d.values()) > 0:
             self.max_score = max(self.d.values())
