@@ -3,6 +3,17 @@ from collections import defaultdict
 from preprocessing import preprocess
 
 
+class Field(object):
+    def __init__(self, terms):
+        self.d = self._build_dict(terms)
+
+    def _build_dict(self, terms):
+        """
+        To be implemented by child classes.
+        """
+        pass
+
+
 class BinaryField(object):
     def __init__(self, terms):
         """Class whose main purpose is to build a simple lookup dictionary from
@@ -12,6 +23,11 @@ class BinaryField(object):
         self.d = {}
         if terms:
             self.d = dict((preprocess(term), 1.0) for term in terms)
+
+    def _build_dict(self, terms):
+        if terms:
+            return dict((preprocess(term), 1.0) for term in terms)
+        return {}
 
     def score(self, candidate):
         """Return a score based on the binary presence or absence of a given
