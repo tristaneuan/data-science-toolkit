@@ -2,10 +2,13 @@ from __future__ import division
 import json
 import logging
 import requests
-from nlp_client.wiki_parses import main_page_nps, phrases_for_wiki_field
-from . import BinaryField, TermFreqField, to_list
-from . import build_dict_with_original_values
-from . import get_subdomain, guess_from_title_tag
+
+from constants import *
+from scoring import Field
+from scraping import guess_from_title_tag
+from services import main_page_nps, phrases_for_wiki_field
+from preprocessing import build_dict_with_original_values
+from preprocessing import get_subdomain, to_list
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -16,19 +19,32 @@ sh = logging.StreamHandler()
 sh.setLevel(logging.INFO)
 log.addHandler(sh)
 
-SOLR = 'http://search-s10:8983/solr/xwiki/select'
+SOLR_ENDPOINT = 'http://search-s10:8983/solr/xwiki/select'
+
 
 
 def identify_subject(wid, terms_only=False):
     """For a given wiki ID, return a comma-separated list of top-scoring
     subjects."""
+
+    fields = {
+        'hostname': Field(wid, 'hostname_s', URL, SOLR, BINARY, 2),
+        'domains': Field(wid, 'domains_txt', URL, SOLR, TF, 1),
+        'sitename': Field(wid, 'sitename_txt', NOT_URL, SERVICE, BINARY, 1),
+        'headline': Field(wid, 'headline_txt', NOT_URL, SERVICE, BINARY, 1),
+        'description': Field(wid, 'description_txt', NOT_URL, SERVICE, TF, 1),
+        'top_titles': Field(wid, 'top_articles_txt', NOT_URL, SOLR, TF, 1),
+        'top_categories': Field(wid, 'top_categories_txt', NOT_URL, SOLR, TF, 1),
+        'title_tag': Field(wid, '', NOT_URL, SCRAPE, BINARY, 4)
+        }
+
     # Request data from Solr
     params = {'q': 'id:%s' % wid,
               'fl': 'url,hostname_s,domains_txt,top_articles_txt,' +
                     'top_categories_txt',
               'wt': 'json'}
 
-    r = requests.get(SOLR, params=params)
+    r = requests.get(SOLR_ENDPOINT, params=params)
     j = json.loads(r.content)
     docs = j['response']['docs']
     # Handle 0 docs response

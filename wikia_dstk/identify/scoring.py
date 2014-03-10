@@ -1,11 +1,34 @@
 from __future__ import division
 from collections import defaultdict
-from preprocessing import preprocess
+from constants import *
+from preprocessing import get_subdomain, preprocess, to_list
 
 
 class Field(object):
-    def __init__(self, terms):
-        self.d = self._build_dict(terms)
+    #def __init__(self, wid, name, is_url, dx_method, use_tf, weight):
+    def __init__(self, wid, name, is_url, dx_method, use_tf, weight):
+        self.wid = wid
+        self.name = name
+
+        self.get_list = self._get_plain_list
+        if is_url:
+            self.get_list = self._get_url_list
+
+        if dx_method == SOLR:
+            self._extract_data = self._extract_via_solr
+        elif dx_method == SERVICE:
+            self._extract_data = self._extract_via_service
+        elif dx_method == SCRAPE:
+            self._extract_data = self._extract_via_scrape
+        else:
+            raise ValueError('Invalid data extraction method')
+
+        self.build_dict = self._build_bin_dict
+        if use_tf:
+            self.build_dict = self._build_tf_dict
+
+    def get_list(self):
+        pass
 
     def _build_dict(self, terms):
         """
