@@ -1,6 +1,5 @@
 from __future__ import division
 import json
-import logging
 import requests
 from multiprocessing import Pool
 from time import time
@@ -15,15 +14,6 @@ TEXT = False
 URL = True
 BINARY = False
 TF = True
-
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
-fh = logging.FileHandler('identify_wiki_subjects.log')
-fh.setLevel(logging.ERROR)
-log.addHandler(fh)
-sh = logging.StreamHandler()
-sh.setLevel(logging.INFO)
-log.addHandler(sh)
 
 SOLR_ENDPOINT = 'http://search-s10:8983/solr/xwiki/select'
 
