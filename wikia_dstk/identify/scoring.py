@@ -1,40 +1,50 @@
 from __future__ import division
 from collections import defaultdict
-from constants import *
 from preprocessing import get_subdomain, preprocess, to_list
 
 
 class Field(object):
-    #def __init__(self, wid, name, is_url, dx_method, use_tf, weight):
-    def __init__(self, wid, name, is_url, dx_method, use_tf, weight):
-        self.wid = wid
-        self.name = name
-
-        self.get_list = self._get_plain_list
+    def __init__(self, data, is_url, use_tf, weight):
+        # Get lists of NPs or raw data, depending on the field
         if is_url:
-            self.get_list = self._get_url_list
-
-        if dx_method == SOLR:
-            self._extract_data = self._extract_via_solr
-        elif dx_method == SERVICE:
-            self._extract_data = self._extract_via_service
-        elif dx_method == SCRAPE:
-            self._extract_data = self._extract_via_scrape
+            self.data = [get_subdomain(url) for url in to_list(data)]
         else:
-            raise ValueError('Invalid data extraction method')
+            self.data = to_list(data)
 
-        self.build_dict = self._build_bin_dict
         if use_tf:
-            self.build_dict = self._build_tf_dict
+            self._dict = self._build_tf_dict()
+            self.score = self._score_tf
+        else:
+            self._dict = self._build_bin_dict()
+            self.score = self._score_bin
 
-    def get_list(self):
-        pass
+        self.weight = weight
+        self._max_score = None
 
-    def _build_dict(self, terms):
-        """
-        To be implemented by child classes.
-        """
-        pass
+    def _build_tf_dict(self):
+        if self.data:
+            d = defaultdict(int)
+            for term in self.data:
+                normalized = preprocess(term)
+                d[normalized] += 1
+            if len(d.values()) > 0:
+                self._max_score = max(d.values())
+            return d
+        return {}
+
+    def _build_bin_dict(self):
+        if self.data:
+            return dict((preprocess(term), 1.0) for term in self.data)
+        return {}
+
+    def _score_tf(self, candidate):
+        return self._dict.get(candidate, 0.0) * self.weight
+
+    def _score_bin(self, candidate):
+        if self._max_score is not None:
+            return ((self._dict.get(candidate, 0.0) / self._max_score) *
+                    self.weight)
+        return 0.0
 
 
 class BinaryField(object):
