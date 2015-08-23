@@ -8,6 +8,7 @@ import re
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
+from flask.ext.script import Manager
 from subprocess import Popen
 from time import sleep
 from config import default_config
@@ -22,7 +23,7 @@ def get_args():
     return ap.parse_known_args()
 
 
-def main():
+def run():
     args, extras = get_args()
     bucket = connect_s3().get_bucket('nlp-data')
 
@@ -60,7 +61,3 @@ def main():
             ec2_conn = connect_to_region(args.region)
             ec2_conn.terminate_instances([current_id])
         sleep(15)
-
-
-if __name__ == '__main__':
-    main()
