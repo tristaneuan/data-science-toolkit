@@ -32,6 +32,9 @@ args, _ = ap.parse_known_args()
 #git pull origin %s && sudo python setup.py install
 #data_extraction %s 2>&1 | tee -a /var/log/data_extraction.log
 #""" % (args.git_ref, args.git_ref, argstring_from_namespace(args, _))
+user_data = """#!/bin/sh
+celery -A data_extraction worker
+"""  # Pass argstring to worker?
 
 argstring = argstring_from_namespace(args, _)
 
@@ -41,11 +44,6 @@ ec2_conn = EC2Connection(vars(args))
 
 def count_workers():
     return len(requests.get('%s/workers' % API).json().keys())
-
-def add_workers(n):
-    # Flower doesn't give me a way to add workers?
-    # Pass argstring to worker
-    pass
 
 def monitor():
     mins = 0
@@ -75,8 +73,7 @@ def monitor():
                 instances_to_add = optimal
             else:
                 instances_to_add = args.max_size
-            #ec2_conn.add_instances(instances_to_add, user_data=user_data)
-            add_workers(instances_to_add)
+            ec2_conn.add_instances(instances_to_add, user_data=user_data)
             numinstances = count_workers()
             print "[%s %s] Scaled up to %d (%d in queue)" % (
                 args.tag, datetime.today().isoformat(' '), numinstances,
@@ -104,8 +101,7 @@ def monitor():
                 optimal = int(ceil(inqueue / args.threshold)) - numinstances
                 allowed = args.max_size - numinstances
                 instances_to_add = optimal if optimal <= allowed else allowed
-                #ec2_conn.add_instances(instances_to_add, user_data=user_data, instance_type="data_extraction")
-                add_workers(instances_to_add)
+                ec2_conn.add_instances(instances_to_add, user_data=user_data, instance_type="data_extraction")
                 numinstances = count_workers()
                 ratio = inqueue / numinstances
             print "[%s %s] Scaled up to %d (%d in queue%s)" % (
