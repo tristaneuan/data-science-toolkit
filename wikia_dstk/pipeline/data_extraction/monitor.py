@@ -21,19 +21,8 @@ API = 'http://TEMPORARY/api'  # Flower API
 ap = get_argparser_from_config(default_config)
 args, _ = ap.parse_known_args()
 
-## Specific to data extraction
-#user_data = """#!/bin/sh
-#echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
-#mkdir -p /mnt/
-#cd /home/ubuntu/data-science-toolkit
-#echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
-#git fetch origin
-#git checkout %s
-#git pull origin %s && sudo python setup.py install
-#data_extraction %s 2>&1 | tee -a /var/log/data_extraction.log
-#""" % (args.git_ref, args.git_ref, argstring_from_namespace(args, _))
 user_data = """#!/bin/sh
-celery -A data_extraction worker
+celery -A data_extraction worker -Q data_extraction
 """  # Pass argstring to worker?
 
 argstring = argstring_from_namespace(args, _)
