@@ -8,16 +8,14 @@ import re
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
-from flask.ext.script import Manager
-from subprocess import Popen
 from time import sleep
 from config import default_config
 from ... import get_argparser_from_config, argstring_from_namespace
+from child import child
 
 
 def get_args():
     ap = get_argparser_from_config(default_config)
-    ap.add_argument('--workers', dest='workers', type=int, default=8)
     ap.add_argument('--no-shutdown', dest='do_shutdown', action='store_false',
                     default=True)
     return ap.parse_known_args()
@@ -29,30 +27,14 @@ def run():
 
     counter = 0
     while True:
-        processes = []
         keys = [key.name for key in bucket.list(prefix='%s/' % args.queue) if
                 re.sub(r'/?%s/?' % args.queue, '', key.name) is not '']
         print len(keys), "keys"
         while len(keys) > 0:
+            k = keys.pop()
+            child.apply_async(k)
             counter = 0
-            print len(processes), "processes"
-            while len(processes) < args.workers:
-                if len(keys) == 0:
-                    break
-                k = keys.pop()
-                command = (
-                    '/usr/bin/python -m ' +
-                    'wikia_dstk.pipeline.data_extraction.child %s --s3key=%s' % (
-                        argstring_from_namespace(args, extras), k))
-                processes.append(Popen(command, shell=True))
-                print command
-            processes = filter(lambda x: x.poll() is None, processes)
             sleep(5)
-
-        while len(processes) > 0:
-            processes = filter(lambda x: x.poll() is None, processes)
-            sleep(30)
-
         counter += 1
         print 'No more keys, waiting 15 seconds. Counter: %d/20' % counter
         if args.do_shutdown and counter >= 20:

@@ -1,6 +1,5 @@
 from flask.ext.script import Manager
 from app import app
-from pipeline.data_extraction.run import run
 from wikia_dstk.commands import data_extraction
 
 manager = Manager(app)

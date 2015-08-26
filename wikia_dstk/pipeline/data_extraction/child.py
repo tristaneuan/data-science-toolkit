@@ -5,7 +5,7 @@ import time
 from boto import connect_s3
 from boto.s3.key import Key
 from boto.utils import get_instance_metadata
-from multiprocessing import Pool
+from celery import group, shared_task
 
 from nlp_services.caching import use_caching
 from wikia_dstk import get_argparser_from_config
@@ -18,6 +18,7 @@ from nlp_services.syntax import *
 doc_id = None
 
 
+@shared_task
 def get_service(service):
     print doc_id, service
     return getattr(sys.modules[__name__], service)().get(doc_id)
@@ -38,18 +39,16 @@ def process_file(filename, services):
     doc_id = '%s_%s' % (match.group(1), match.group(2))
     print 'Calling doc-level services on %s' % doc_id
 
-    pool = Pool(processes=8)
-    s = pool.map_async(get_service, services)
-    s.wait()
+    s = group(get_service.s(service) for service in services)().get()
 
 
-def call_services(args):
+def call_services(args, s3key):
     bucket = connect_s3().get_bucket('nlp-data')
-    key = bucket.get_key(args.s3key)
+    key = bucket.get_key(s3key)
     if key is None:
         return
 
-    folder = args.s3key.split('/')[0]
+    folder = s3key.split('/')[0]
 
     eventfile = "%s_processing/%s_%s_%s" % (
         folder, get_instance_metadata()['local-hostname'], str(time.time()),
@@ -63,24 +62,20 @@ def call_services(args):
 
     lines = k.get_contents_as_string().split('\n')
     map(lambda x: process_file(x, args.services.split(',')), lines)
-    print args.s3key, len(lines), "ids completed"
+    print s3key, len(lines), "ids completed"
 
     k.delete()
 
 
 def get_args():
     ap = get_argparser_from_config(default_config)
-    ap.add_argument('--s3key', dest='s3key', required=True)
     return ap.parse_known_args()
 
 
-def main():
+@shared_task
+def child(s3key):
     args, _ = get_args()
     use_caching(per_service_cache=dict(
         [(service+'.get', {'write_only': True}) for service in
          args.services.split(',')]))
-    call_services(args)
-
-
-if __name__ == '__main__':
-    main()
+    call_services(args, s3key)
