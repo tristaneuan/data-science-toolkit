@@ -70,7 +70,7 @@ while True:
         intervals.append((mins, delta))
         avg = reduce(lambda x, y: x + y,
                      map(lambda x: x[1]/(x[0]), intervals))/len(intervals)
-        rate = ", %.3f tarballs/min; %d in the last %d minute(s)" % (avg, mins)
+        rate = ", %.3f tarballs/min; %d in the last %d minute(s)" % (avg, delta, mins)
     else:
         rate = ""
 
