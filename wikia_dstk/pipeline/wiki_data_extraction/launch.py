@@ -14,7 +14,7 @@ def get_args():
                     help='Dump Solr data to JSON')
     ap.add_argument('-L', '--load-json', dest='load_json',
                     help='Load Solr data from JSON')
-    ap.add_argument('-e', '--solr-endpoint', dest='solr_endpoint', default='http://search-s9:8983/solr',
+    ap.add_argument('-e', '--solr-endpoint', dest='solr_endpoint', default='http://search-s13:8983/solr',
                     help="The Solr endpoint")
     ap.add_argument('-a', '--all', dest='all', action='store_true', default=False,
                     help="Index all wikis")
