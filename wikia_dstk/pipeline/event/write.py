@@ -82,18 +82,18 @@ def write_since_last_indexed():
             f.write(query)
 
 
-def write_for_all_wikis():
-    """
-    Writes queries for all English wikis with 50 or more articles
-    """
-    params = {'q': 'lang_s:en AND articles_i:[50 TO *]', 'wt': 'json', 'rows': 500, 'fl': 'id', 'start': 0}
-    while True:
-        # can't use search-s10 here because of bad data, i hear there's a team whose job it is to handle that
-        response = requests.get('http://search-s9:8983/solr/xwiki/select', params=params).json()
-        map(lambda x: write_for_wid(x['id']), response['response']['docs'])
-        if params['start'] + params['rows'] >= response['response']['numFound']:
-            return
-        params['start'] += params['rows']
+#def write_for_all_wikis():
+#    """
+#    Writes queries for all English wikis with 50 or more articles
+#    """
+#    params = {'q': 'lang_s:en AND articles_i:[50 TO *]', 'wt': 'json', 'rows': 500, 'fl': 'id', 'start': 0}
+#    while True:
+#        # can't use search-s10 here because of bad data, i hear there's a team whose job it is to handle that
+#        response = requests.get('http://search-s9:8983/solr/xwiki/select', params=params).json()
+#        map(lambda x: write_for_wid(x['id']), response['response']['docs'])
+#        if params['start'] + params['rows'] >= response['response']['numFound']:
+#            return
+#        params['start'] += params['rows']
 
 
 def write_wids(wids):
@@ -137,8 +137,8 @@ def main():
     args = get_args()
     if args.query is not None:
         write_query(args.query)
-    elif args.all_wikis is not None:
-        write_for_all_wikis()
+    #elif args.all_wikis is not None:
+    #    write_for_all_wikis()
     elif args.wids is not None:
         write_wids(args.wids)
     elif args.last_indexed:
