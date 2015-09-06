@@ -1,7 +1,7 @@
 config = {
     "region": "us-west-2",
     "price": "0.300",
-    "ami": "ami-0bfdef3b",  # dstk 2015-09-06a
+    "ami": "ami-7ffdef4f",  # dstk 2015-09-06b
     "key": "data-extraction",
     "sec": "sshable",
     "type": "m2.4xlarge",
