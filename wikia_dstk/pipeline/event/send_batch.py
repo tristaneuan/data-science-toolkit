@@ -53,8 +53,7 @@ if __name__ == '__main__':
                 sleep(60)
                 continue
             if num_text_files < BATCHSIZE:
-                logger.warning('Current batch does not meet %i file minimum,' +
-                               ' waiting for 60 seconds...' % BATCHSIZE)
+                logger.warning('Current batch does not meet %i file minimum, waiting for 60 seconds...' % BATCHSIZE)
                 bypass_minimum = True
                 sleep(60)
             logger.info('Sorting text files chronologically.')
@@ -92,7 +91,7 @@ if __name__ == '__main__':
                 logger.info(
                     'Uploading %s to S3' % os.path.basename(tarball_path))
                 k = Key(bucket)
-                k.key = 'bulk_events/%s' % os.path.basename(tarball_path)
+                k.key = 'text_events/%s' % os.path.basename(tarball_path)
                 k.set_contents_from_filename(tarball_path)
                 os.remove(tarball_path)
 
