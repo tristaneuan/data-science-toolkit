@@ -51,7 +51,7 @@ def write_text(event_file):
             query = line.strip()
             logger.info('Writing query: "%s"' % query)
             qi = QueryIterator(
-                'http://search-9.prod.wikia.net:8983/solr/main/',
+                'http://search-s13.prod.wikia.net:8983/solr/main/',
                 {'query': query, 'fields': 'id,wid,html_en,indexed',
                  'sort': 'id asc'})
             for doc in qi:
