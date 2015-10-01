@@ -188,7 +188,7 @@ class EC2Connection(object):
             # Find pending, running, shutting-down, stopping instances
             active_instances = filter(
                 lambda x: x.state_code in (0, 16, 32, 64),
-                self.conn.get_only_instances())
+                self.conn.get_only_instances(filters={'tag:Name': self.tag}))
             desired_instances = len(active_instances) + len(scripts)
             # Find spot instance requests with associated instances active
             active_sirs = filter(
