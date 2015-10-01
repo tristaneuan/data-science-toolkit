@@ -108,9 +108,9 @@ git pull origin {git_ref} && sudo python setup.py install
 cd /home/ubuntu
 python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path={{key}} {argstring} 2>&1 | tee -a /home/ubuntu/wiki_data_extraction.log""".format(git_ref=args.git_ref, argstring=argstring_from_namespace(args, extras))
 #python -m wikia_dstk.pipeline.wiki_data_extraction.test_log &> /home/ubuntu/test.log""".format(git_ref=args.git_ref)
-    instances = run_instances_lb(
+    instance_ids = run_instances_lb(
         wids, callback, num_instances, user_data, config)
-    instance_ids = [i for i in instances.get() for i in i]
+    #instance_ids = [i for i in instances.get() for i in i]
     conn = connect_to_region('us-west-2')
     conn.create_tags(instance_ids, {'Name': args.tag, 'type': 'wiki_data_extraction'})
     print 'The following instances have been launched: %s' % str(instance_ids)
