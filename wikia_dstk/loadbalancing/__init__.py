@@ -88,8 +88,15 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
         formatted = user_data.format(key=k.key)
         scripts.append(formatted)
 
+    instance_ids = []
+    for script in scripts:
+        instance_id = conn.add_instances(1, user_data=script)
+        instance_ids.extend(instance_id)
+
     # Launch instances
-    return conn.add_instances_async(scripts)
+    #return conn.add_instances_async(scripts)
+
+    return instance_ids
 
 
 class EC2Connection(object):
